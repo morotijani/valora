@@ -7,3 +7,6 @@ define('DB_PASS', '');
 // Other configs
 define('SITE_NAME', 'Valora Gift Cards');
 define('BASE_URL', 'http://localhost/valora');
+
+// ENCRYPTION KEY (Change this in production)
+define('ENCRYPTION_KEY', 'vAloRA-sEcREt-kEy-2024-!@#$');

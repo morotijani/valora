@@ -39,6 +39,7 @@ if (!$product) {
                 </div>
                 
                 <form action="actions/purchase.php" method="POST">
+                    <?php require_once 'includes/csrf.php'; echo csrf_field(); ?>
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                     <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-indigo-500/20 transition-all">
                         Buy Now with Flutterwave

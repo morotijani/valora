@@ -43,3 +43,9 @@ CREATE TABLE IF NOT EXISTS voucher_codes (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    action_key VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL
+);

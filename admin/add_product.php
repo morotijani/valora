@@ -1,10 +1,11 @@
-<?php
 require_once '../includes/db.php';
 require_once '../includes/auth_check.php';
+require_once '../includes/csrf.php';
 session_start();
 requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $name = $_POST['name'] ?? '';
     $brand = $_POST['brand'] ?? '';
     $price = $_POST['price'] ?? 0;
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1 class="text-3xl font-bold mb-8">Add New Card Product</h1>
         
         <form method="POST" class="space-y-6">
+            <?php echo csrf_field(); ?>
             <div class="grid grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Display Name</label>

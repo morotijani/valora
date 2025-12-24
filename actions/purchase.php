@@ -1,5 +1,5 @@
-<?php
 require_once '../includes/db.php';
+require_once '../includes/csrf.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $product_id = $_POST['product_id'] ?? 0;
     
     // Check stock

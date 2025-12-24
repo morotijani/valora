@@ -1,5 +1,5 @@
-<?php
 require_once 'includes/db.php';
+require_once 'includes/csrf.php';
 session_start();
 
 if (isset($_SESSION['user_id'])) {
@@ -9,6 +9,13 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+    require_once 'includes/rate_limit.php';
+    $ip = $_SERVER['REMOTE_ADDR'];
+    if (!checkRateLimit("login_$ip", 5, 300)) {
+        die("Too many login attempts. Please try again in 5 minutes.");
+    }
+    
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     
@@ -47,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
         <form method="POST" class="space-y-4">
+            <?php echo csrf_field(); ?>
             <div>
                 <label class="block text-sm text-gray-400 mb-1">Email Address</label>
                 <input type="email" name="email" required class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500">

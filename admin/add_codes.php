@@ -1,26 +1,21 @@
-<?php
 require_once '../includes/db.php';
 require_once '../includes/auth_check.php';
+require_once '../includes/encryption.php';
+require_once '../includes/csrf.php';
 session_start();
 requireAdmin();
 
-$id = $_GET['id'] ?? 0;
-$stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-$stmt->execute([$id]);
-$product = $stmt->fetch();
-
-if (!$product) die("Product not found.");
-
-$msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $codes_raw = $_POST['codes'] ?? '';
     $codes_list = array_filter(array_map('trim', explode("\n", $codes_raw)));
     
     foreach ($codes_list as $code) {
         $hash = hash('sha256', $code);
+        $encrypted = encryptCode($code);
         try {
             $stmt = $pdo->prepare("INSERT INTO voucher_codes (product_id, code_encrypted, code_hash, status) VALUES (?, ?, ?, 'available')");
-            $stmt->execute([$id, $code, $hash]); // In real life, encrypt $code
+            $stmt->execute([$id, $encrypted, $hash]);
         } catch (PDOException $e) {
             // Probably duplicate code
         }
@@ -48,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" class="space-y-6">
+            <?php echo csrf_field(); ?>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2">Paste Codes (One per line)</label>
                 <textarea name="codes" rows="10" required class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500 font-mono text-sm" placeholder="CODE-1234-5678&#10;CODE-9876-5432"></textarea>

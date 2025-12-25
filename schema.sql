@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'USD',
+    category ENUM('gift_card', 'credit_card') DEFAULT 'gift_card',
     is_active TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

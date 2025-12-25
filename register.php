@@ -1,6 +1,6 @@
+<?php
 require_once 'includes/db.php';
 require_once 'includes/csrf.php';
-session_start();
 
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");

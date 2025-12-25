@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$stmt = $pdo->prepare("SELECT o.*, p.name as product_name FROM orders o JOIN voucher_codes v ON v.order_id = o.id JOIN products p ON v.product_id = p.id WHERE o.user_id = ? ORDER BY o.created_at DESC");
+$stmt = $pdo->prepare("SELECT o.*, p.name as product_name, p.category FROM orders o JOIN voucher_codes v ON v.order_id = o.id JOIN products p ON v.product_id = p.id WHERE o.user_id = ? ORDER BY o.created_at DESC");
 $stmt->execute([$_SESSION['user_id']]);
 $orders = $stmt->fetchAll();
 ?>
@@ -25,7 +25,32 @@ $orders = $stmt->fetchAll();
                 const response = await fetch(`actions/reveal.php?order_id=${orderId}`);
                 const data = await response.json();
                 if (data.code) {
-                    btn.parentElement.innerHTML = `<code class="bg-black/40 px-3 py-1 rounded text-cyan-400 font-mono text-lg border border-cyan-500/30">${data.code}</code>`;
+                    try {
+                        const card = JSON.parse(data.code);
+                        // It's a Credit Card
+                        btn.parentElement.innerHTML = `
+                            <div class="bg-gradient-to-br from-gray-700 to-gray-900 p-6 rounded-2xl border border-white/10 shadow-xl w-72 text-left">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">${card.country} • ${card.balance}$</span>
+                                    <div class="h-8 w-12 bg-white/5 rounded-md flex items-center justify-center text-[10px] font-bold">CARD</div>
+                                </div>
+                                <div class="text-lg font-mono tracking-[0.2em] mb-4 text-white">${card.number}</div>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-[8px] uppercase text-gray-500 font-bold mb-1">Card Holder</div>
+                                        <div class="text-xs font-bold">${card.name}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[8px] uppercase text-gray-500 font-bold mb-1">Expiry / CVV</div>
+                                        <div class="text-xs font-bold font-mono">${card.expiry} • ${card.cvv}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } catch (e) {
+                        // It's a simple Gift Card code
+                        btn.parentElement.innerHTML = `<code class="bg-black/40 px-3 py-1 rounded text-cyan-400 font-mono text-lg border border-cyan-500/30">${data.code}</code>`;
+                    }
                 } else {
                     alert(data.error || 'Failed to reveal.');
                     btn.innerText = 'Click to Reveal';

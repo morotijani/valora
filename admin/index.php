@@ -4,6 +4,17 @@ require_once '../includes/auth_check.php';
 session_start();
 requireAdmin();
 
+// Stats
+$stmt = $pdo->query("SELECT SUM(total_amount) as total_sales, COUNT(*) as total_orders FROM orders WHERE status = 'paid'");
+$stats = $stmt->fetch();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM products");
+$total_products = $stmt->fetchColumn();
+
+$stmt = $pdo->query("SELECT COUNT(*) FROM voucher_codes WHERE status = 'available'");
+$available_codes = $stmt->fetchColumn();
+
+// Products list
 $stmt = $pdo->query("SELECT p.*, (SELECT COUNT(*) FROM voucher_codes v WHERE v.product_id = p.id AND v.status = 'available') as stock FROM products p");
 $products = $stmt->fetchAll();
 ?>
@@ -29,6 +40,26 @@ $products = $stmt->fetchAll();
 
         <!-- Main Content -->
         <main class="flex-1 p-10">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Sales</p>
+                    <p class="text-2xl font-black text-indigo-600">$<?php echo number_format($stats['total_sales'] ?? 0, 2); ?></p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Paid Orders</p>
+                    <p class="text-2xl font-black text-gray-900"><?php echo $stats['total_orders']; ?></p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Products</p>
+                    <p class="text-2xl font-black text-gray-900"><?php echo $total_products; ?></p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 text-green-600">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Available Stock</p>
+                    <p class="text-2xl font-black"><?php echo $available_codes; ?></p>
+                </div>
+            </div>
+
             <div class="flex justify-between items-center mb-10">
                 <h2 class="text-3xl font-bold">Manage Products</h2>
                 <a href="add_product.php" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-indigo-200">
@@ -58,9 +89,12 @@ $products = $stmt->fetchAll();
                                 <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($product['brand']); ?></td>
                                 <td class="px-6 py-4 font-bold text-indigo-600">$<?php echo number_format($product['price'], 2); ?></td>
                                 <td class="px-6 py-4">
-                                    <span class="px-3 py-1 bg-gray-100 rounded-full text-xs font-bold <?php echo $product['stock'] < 5 ? 'text-red-500' : 'text-gray-600'; ?>">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold <?php echo $product['stock'] < 5 ? 'bg-red-100 text-red-500 animate-pulse' : 'bg-gray-100 text-gray-600'; ?>">
                                         <?php echo $product['stock']; ?> available
                                     </span>
+                                    <?php if ($product['stock'] == 0): ?>
+                                        <div class="text-[10px] text-red-600 font-bold uppercase mt-1">Need Restock</div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php if ($product['is_active']): ?>

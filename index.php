@@ -3,7 +3,17 @@ require_once 'includes/db.php';
 session_start();
 
 // Fetch products
-$stmt = $pdo->query("SELECT * FROM products WHERE is_active = 1");
+$category_filter = $_GET['cat'] ?? 'all';
+$query = "SELECT * FROM products WHERE is_active = 1";
+$params = [];
+
+if ($category_filter !== 'all') {
+    $query .= " AND category = ?";
+    $params[] = $category_filter;
+}
+
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
 $products = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -48,20 +58,27 @@ $products = $stmt->fetchAll();
     </nav>
 
     <!-- Hero -->
-    <header class="py-20 text-center">
+    <header class="py-16 text-center">
         <div class="max-w-4xl mx-auto px-4">
             <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">
-                Digital Gift Cards <br>
-                <span class="text-indigo-400">Delivered Instantly.</span>
+                Digital Assets <br>
+                <span class="text-indigo-400">Instantly Delivered.</span>
             </h1>
             <p class="text-xl text-gray-400 mb-10 leading-relaxed">
-                Purchase secure vouchers, gaming top-ups, and prepaid cards with mobile money or bank transfer.
+                Purchase secure gift cards, virtual credit cards, and prepaid vouchers with ease.
             </p>
+            
+            <!-- Category Filters -->
+            <div class="flex justify-center space-x-2">
+                <a href="index.php?cat=all" class="px-6 py-2 rounded-full text-sm font-bold transition <?php echo $category_filter === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'; ?>">All</a>
+                <a href="index.php?cat=gift_card" class="px-6 py-2 rounded-full text-sm font-bold transition <?php echo $category_filter === 'gift_card' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'; ?>">Gift Cards</a>
+                <a href="index.php?cat=credit_card" class="px-6 py-2 rounded-full text-sm font-bold transition <?php echo $category_filter === 'credit_card' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'; ?>">Credit Cards</a>
+            </div>
         </div>
     </header>
 
     <!-- Products -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <?php foreach ($products as $product): ?>
                 <div class="bg-gray-800/50 rounded-3xl border border-white/5 p-4 hover:border-indigo-500/50 transition-all group">

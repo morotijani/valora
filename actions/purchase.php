@@ -1,6 +1,6 @@
+<?php
 require_once '../includes/db.php';
 require_once '../includes/csrf.php';
-session_start();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
@@ -32,8 +32,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("UPDATE voucher_codes SET order_id = ?, status = 'reserved', reserved_at = NOW() WHERE product_id = ? AND status = 'available' LIMIT 1");
     $stmt->execute([$order_id, $product_id]);
     
-    // Mock Flutterwave Redirect
-    // In real life: redirect to Flutterwave checkout URL here
-    header("Location: ../order_verify_mock.php?uuid=" . $uuid);
+    // Get product info for FLW
+    $stmt = $pdo->prepare("SELECT name FROM products WHERE id = ?");
+    $stmt->execute([$product_id]);
+    $p_name = $stmt->fetchColumn();
+
+    // Initiate Real Flutterwave Payment
+    require_once '../includes/flutterwave.php';
+    $flwData = initiateFlutterwavePayment([
+        'uuid' => $uuid,
+        'total_amount' => $price,
+        'email' => $_SESSION['user_email'] ?? 'customer@example.com', // Need email in session!
+        'product_name' => $p_name
+    ]);
+
+    if (isset($flwData['status']) && $flwData['status'] === 'success') {
+        header("Location: " . $flwData['data']['link']);
+    } else {
+        die("Flutterwave error: " . ($flwData['message'] ?? 'Unknown error'));
+    }
     exit();
 }

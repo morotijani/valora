@@ -1,18 +1,19 @@
+<?php
 require_once '../includes/db.php';
 require_once '../includes/auth_check.php';
 require_once '../includes/csrf.php';
-session_start();
 requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $name = $_POST['name'] ?? '';
     $brand = $_POST['brand'] ?? '';
+    $category = $_POST['category'] ?? 'gift_card';
     $price = $_POST['price'] ?? 0;
     $desc = $_POST['description'] ?? '';
     
-    $stmt = $pdo->prepare("INSERT INTO products (name, brand, price, description) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$name, $brand, $price, $desc]);
+    $stmt = $pdo->prepare("INSERT INTO products (name, brand, category, price, description) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $brand, $category, $price, $desc]);
     header("Location: index.php");
     exit();
 }
@@ -41,9 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" name="brand" required class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Selling Price ($)</label>
-                <input type="number" step="0.01" name="price" required class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                    <select name="category" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                        <option value="gift_card">Gift Card</option>
+                        <option value="credit_card">Credit Card</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Selling Price ($)</label>
+                    <input type="number" step="0.01" name="price" required class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                </div>
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>

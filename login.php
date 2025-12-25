@@ -1,6 +1,6 @@
+<?php
 require_once 'includes/db.php';
 require_once 'includes/csrf.php';
-session_start();
 
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_role'] = $user['role'];
         header("Location: index.php");
         exit();

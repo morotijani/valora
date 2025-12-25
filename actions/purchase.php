@@ -37,12 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$product_id]);
     $p_name = $stmt->fetchColumn();
 
+    /* 
     // Initiate Real Flutterwave Payment
     require_once '../includes/flutterwave.php';
     $flwData = initiateFlutterwavePayment([
         'uuid' => $uuid,
         'total_amount' => $price,
-        'email' => $_SESSION['user_email'] ?? 'customer@example.com', // Need email in session!
+        'email' => $_SESSION['user_email'] ?? 'customer@example.com',
         'product_name' => $p_name
     ]);
 
@@ -51,5 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         die("Flutterwave error: " . ($flwData['message'] ?? 'Unknown error'));
     }
+    */
+    
+    // TEST MODE: Skip payment and go to dashboard
+    header("Location: ../dashboard.php?msg=pending");
     exit();
 }

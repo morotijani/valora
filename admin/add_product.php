@@ -12,10 +12,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = $_POST['price'] ?? 0;
     $desc = $_POST['description'] ?? '';
     
-    $stmt = $pdo->prepare("INSERT INTO products (name, brand, category, price, description) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $brand, $category, $price, $desc]);
-    header("Location: index.php");
-    exit();
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("INSERT INTO products (name, brand, category, price, description) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$name, $brand, $category, $price, $desc]);
+        $product_id = $pdo->lastInsertId();
+
+        if ($category === 'credit_card') {
+            require_once '../includes/encryption.php';
+            $cc_data = [
+                'number' => $_POST['cc_number'] ?? '',
+                'cvv' => $_POST['cc_cvv'] ?? '',
+                'expiry' => $_POST['cc_expiry'] ?? '',
+                'name' => $_POST['cc_name'] ?? '',
+                'balance' => $_POST['cc_balance'] ?? '',
+                'country' => $_POST['cc_country'] ?? ''
+            ];
+            $code_json = json_encode($cc_data);
+            $hash = hash('sha256', $cc_data['number']);
+            $encrypted = encryptCode($code_json);
+            
+            $stmt = $pdo->prepare("INSERT INTO voucher_codes (product_id, code_encrypted, code_hash, status) VALUES (?, ?, ?, 'available')");
+            $stmt->execute([$product_id, $encrypted, $hash]);
+        }
+        
+        $pdo->commit();
+        header("Location: index.php?msg=added");
+        exit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        die("Error adding product: " . $e->getMessage());
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -59,10 +86,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
                 <textarea name="description" rows="4" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500"></textarea>
             </div>
+
+            <!-- Credit Card Details (Conditional) -->
+            <div id="cc_fields" class="hidden space-y-6 pt-6 border-t border-gray-100">
+                <h3 class="font-bold text-indigo-600 uppercase tracking-widest text-xs">Credit Card Details</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Card Number</label>
+                        <input type="text" name="cc_number" placeholder="4111 2222 3333 4444" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Cardholder Name</label>
+                        <input type="text" name="cc_name" placeholder="JOHN DOE" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Expiry</label>
+                        <input type="text" name="cc_expiry" placeholder="12/26" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">CVV</label>
+                        <input type="text" name="cc_cvv" placeholder="123" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Balance ($)</label>
+                        <input type="text" name="cc_balance" placeholder="500" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Country</label>
+                    <input type="text" name="cc_country" placeholder="USA" class="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-lg transition shadow-lg shadow-indigo-100">
                 Save Product
             </button>
         </form>
     </div>
+
+    <script>
+        const categorySelect = document.querySelector('select[name="category"]');
+        const ccFields = document.getElementById('cc_fields');
+        
+        categorySelect.addEventListener('change', function() {
+            if (this.value === 'credit_card') {
+                ccFields.classList.remove('hidden');
+                ccFields.querySelectorAll('input').forEach(i => i.required = true);
+            } else {
+                ccFields.classList.add('hidden');
+                ccFields.querySelectorAll('input').forEach(i => i.required = false);
+            }
+        });
+    </script>
 </body>
 </html>

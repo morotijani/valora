@@ -103,8 +103,12 @@ $products = $stmt->fetchAll();
                                         <span class="text-red-400 text-xs font-bold uppercase tracking-widest">Draft</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <a href="add_codes.php?id=<?php echo $product['id']; ?>" class="text-indigo-400 hover:text-indigo-600 text-sm font-bold">Add Codes</a>
+                                <td class="px-6 py-4 space-x-3">
+                                    <?php if ($product['category'] === 'gift_card'): ?>
+                                        <a href="add_codes.php?id=<?php echo $product['id']; ?>" class="text-indigo-400 hover:text-indigo-600 text-sm font-bold">Add Codes</a>
+                                    <?php endif; ?>
+                                    <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="text-amber-500 hover:text-amber-600 text-sm font-bold">Edit</a>
+                                    <a href="delete_product.php?id=<?php echo $product['id']; ?>" onclick="return confirm('Are you sure? This will delete all associated codes.')" class="text-red-400 hover:text-red-600 text-sm font-bold">Delete</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

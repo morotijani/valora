@@ -86,6 +86,15 @@ $orders = $stmt->fetchAll();
             </div>
         <?php endif; ?>
 
+        <?php if (isset($_GET['msg']) && $_GET['msg'] === 'pending'): ?>
+            <div class="bg-yellow-500/10 border border-yellow-500/50 text-yellow-500 p-4 rounded-2xl mb-8 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Order started! In test mode, click "Verify Payment" below to complete it.
+            </div>
+        <?php endif; ?>
+
         <div class="space-y-6">
             <?php foreach ($orders as $order): ?>
                 <div class="bg-gray-800/80 border border-white/5 rounded-3xl p-6 flex flex-wrap items-center justify-between">
@@ -109,7 +118,12 @@ $orders = $stmt->fetchAll();
                                 <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-wide">Secure Decryption</p>
                             </div>
                         <?php else: ?>
-                            <a href="order_verify_mock.php?uuid=<?php echo $order['uuid']; ?>" class="text-yellow-400 hover:underline font-bold">Complete Payment</a>
+                            <div class="flex flex-col items-end">
+                                <a href="order_verify_mock.php?uuid=<?php echo $order['uuid']; ?>" class="bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/50 px-6 py-2 rounded-xl text-sm font-bold transition">
+                                    Verify Payment (TEST)
+                                </a>
+                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-wide italic">Bypassing Flutterwave</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
